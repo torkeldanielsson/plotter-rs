@@ -826,11 +826,9 @@ fn main() {
         detect_mouse_button_release_outside_window(&mut s);
 
         {
-            let scale = imgui.display_framebuffer_scale();
-
             imgui.set_mouse_pos(
-                s.mouse_state.pos.0 as f32 / scale.0,
-                s.mouse_state.pos.1 as f32 / scale.1,
+                s.mouse_state.pos.0 as f32,
+                s.mouse_state.pos.1 as f32,
             );
 
             imgui.set_mouse_down([
@@ -841,7 +839,7 @@ fn main() {
                 false,
             ]);
 
-            imgui.set_mouse_wheel(s.mouse_state.wheel / scale.1);
+            imgui.set_mouse_wheel(s.mouse_state.wheel);
         }
 
         let gl_window = display.gl_window();
