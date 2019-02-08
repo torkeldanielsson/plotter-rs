@@ -67,7 +67,7 @@ impl Lookup for [Box<Block>] {
 
 #[derive(Debug, Copy, Clone)]
 struct MouseState {
-    pos: (i32, i32),
+    pos: (f64, f64),
     pressed: (bool, bool, bool),
     wheel: f32,
 }
@@ -75,7 +75,7 @@ struct MouseState {
 impl MouseState {
     fn new() -> MouseState {
         MouseState {
-            pos: (0, 0),
+            pos: (0.0, 0.0),
             pressed: (false, false, false),
             wheel: 0.0,
         }
@@ -143,6 +143,8 @@ struct State {
     ch1_scale: f32,
 
     rise_value: Arc<Mutex<f32>>,
+
+    captured_mouse_pos: (f64, f64),
 }
 
 impl State {
@@ -166,6 +168,7 @@ impl State {
             ch1_pan: 1.0,
             ch1_scale: 1.0,
             rise_value: Arc::new(Mutex::new(0.0)),
+            captured_mouse_pos: (0.0, 0.0),
         }
     }
 }
@@ -732,8 +735,8 @@ fn main() {
             match event {
                 Event::DeviceEvent { event, .. } => match event {
                     DeviceEvent::MouseMotion { delta: (x, y), .. } => {
-                        s.mouse_state.pos.0 += x as i32;
-                        s.mouse_state.pos.1 += y as i32;
+                        s.mouse_state.pos.0 += x / display.gl_window().get_hidpi_factor();
+                        s.mouse_state.pos.1 += y / display.gl_window().get_hidpi_factor();
                     }
                     _ => (),
                 },
@@ -782,9 +785,7 @@ fn main() {
                         position: LogicalPosition { x, y },
                         ..
                     } => {
-                        if x as i32 != 0 && y as i32 != 0 {
-                            new_absolute_mouse_pos = Some((x as i32, y as i32));
-                        }
+                        new_absolute_mouse_pos = Some((x, y));
                     }
                     WindowEvent::MouseInput { state, button, .. } => match button {
                         MouseButton::Left => {
@@ -819,8 +820,20 @@ fn main() {
             }
         });
 
-        if let Some(pos) = new_absolute_mouse_pos {
-            s.mouse_state.pos = pos;
+        if !s.mouse_state.pressed.0 {
+            if let Some(pos) = new_absolute_mouse_pos {
+                s.mouse_state.pos = pos;
+            }
+        }
+
+        display.gl_window().hide_cursor(s.mouse_state.pressed.0);
+
+        if s.mouse_state.pressed.0 && !s.last_mouse_state.pressed.0 {
+            s.captured_mouse_pos = s.last_mouse_state.pos;
+        }
+
+        if s.mouse_state.pressed.0 {
+            display.gl_window().set_cursor_position(glium::glutin::dpi::LogicalPosition::new(s.captured_mouse_pos.0, s.captured_mouse_pos.1)).unwrap();
         }
 
         detect_mouse_button_release_outside_window(&mut s);
