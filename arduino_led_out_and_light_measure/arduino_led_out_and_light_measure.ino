@@ -1,11 +1,14 @@
 #include <stdint.h>
 
 const int analogInPin = A0;
-const int analogOutPin = 9;
+const int analogOutPin = A1;
 
 void setup()
 {
     Serial.begin(250000);
+        
+    pinMode(analogInPin, INPUT);
+    pinMode(analogOutPin, OUTPUT);
 }
 
 enum class LightState : uint8_t {
@@ -76,4 +79,3 @@ void loop()
     Serial.write((time_send >> 14) & 0x7f);
     Serial.write((time_send >> 21) & 0x7f);
 }
-
