@@ -1,18 +1,4 @@
-extern crate arrayvec;
-extern crate byteorder;
-extern crate clamp;
-extern crate glium;
-extern crate nfd;
-extern crate serialport;
-extern crate time;
-extern crate image;
-
-#[macro_use]
-extern crate imgui;
-extern crate imgui_glium_renderer;
-
-#[cfg(windows)]
-extern crate winapi;
+use imgui::im_str;
 
 use byteorder::{ByteOrder, LittleEndian};
 use glium::glutin::{
