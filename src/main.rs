@@ -276,6 +276,8 @@ fn open_com_port(state: &mut State) {
                 }
             };
 
+            sp.write_data_terminal_ready(true).unwrap();
+
             let mut buffer = Vec::new();
 
             let mut block_ch0 = Box::new(Block::new());
@@ -286,6 +288,7 @@ fn open_com_port(state: &mut State) {
             let mut start_timestamp = 0;
             let mut last_ligh_on = 0;
             let mut measuring_cycle = false;
+            let mut has_seen_low_value = false;
 
             while !stop_loading.load(Ordering::SeqCst) {
                 
@@ -342,19 +345,24 @@ fn open_com_port(state: &mut State) {
                         };
 
                         {
-                            if last_ligh_on == 1 && light_on == 0 {
+                            if last_ligh_on == 0 && light_on == 1 {
                                 start_timestamp = time;
                                 measuring_cycle = true;
                             }
 
-                            if measuring_cycle && light_on == 1 {
+                            if measuring_cycle && (light_on == 0 && last_ligh_on == 1) {
                                 measuring_cycle = false;
                             }
 
-                            if measuring_cycle && ch0_avg < *rise_value.lock().unwrap() as f64 {
+                            if measuring_cycle && has_seen_low_value && ch0_avg > *rise_value.lock().unwrap() as f64 {
                                 measuring_cycle = false;
+                                has_seen_low_value = false;
                                 let latency = time - start_timestamp;
-                                println!("{}", latency as f64 / 1000.0);
+                                dbg!(latency as f64 / 1000.0);
+                            }
+
+                            if ch0_avg < *rise_value.lock().unwrap() as f64 {
+                                has_seen_low_value = true;
                             }
 
                             last_ligh_on = light_on;

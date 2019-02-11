@@ -1,7 +1,8 @@
 [package]
 name = "plotter-rs"
 version = "0.1.0"
-authors = ["Jonathan Nilsson"]
+authors = ["Jonathan Nilsson", "Torkel Danielsson"]
+edition = '2018'
 
 [dependencies]
 arrayvec = "0.4.7"
